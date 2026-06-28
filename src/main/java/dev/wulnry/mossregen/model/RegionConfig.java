@@ -17,11 +17,13 @@ public final class RegionConfig {
     private final Map<Material, RegenBlock> individualBlocks;
     private final Map<Material, GlobalRegenGroup> globalGroupsByTrigger;
     private final Map<String, GlobalRegenGroup> globalGroupsById;
+    private final boolean denyOtherBlocks;
 
     public RegionConfig(String regionId,
                         Map<Material, RegenBlock> individualBlocks,
                         Map<Material, GlobalRegenGroup> globalGroupsByTrigger,
-                        Map<String, GlobalRegenGroup> globalGroupsById) {
+                        Map<String, GlobalRegenGroup> globalGroupsById,
+                        boolean denyOtherBlocks) {
         this.regionId = regionId;
         this.individualBlocks = individualBlocks == null
                 ? Collections.emptyMap() : Map.copyOf(individualBlocks);
@@ -29,10 +31,21 @@ public final class RegionConfig {
                 ? Collections.emptyMap() : Map.copyOf(globalGroupsByTrigger);
         this.globalGroupsById = globalGroupsById == null
                 ? Collections.emptyMap() : Map.copyOf(globalGroupsById);
+        this.denyOtherBlocks = denyOtherBlocks;
     }
 
     public String getRegionId() {
         return regionId;
+    }
+
+    /**
+     * Bu bolgede config'de tanimli olmayan bloklarin kirilmasi engellensin mi?
+     *
+     * <p>true ise: bolgede yalnizca {@code blocks} ve {@code global_regen_groups}
+     * altinda tanimli materyaller kirilabilir; diger her sey iptal edilir.</p>
+     */
+    public boolean isDenyOtherBlocks() {
+        return denyOtherBlocks;
     }
 
     /** Kirilan materyal icin bireysel blok tanimi (yoksa null). */

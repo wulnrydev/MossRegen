@@ -38,6 +38,10 @@ public final class ConfigManager {
     // Hizli on-filtre: event'te kirilan materyal bu kumede yoksa hicbir is yapilmaz.
     private Set<Material> interestingMaterials = EnumSet.noneOf(Material.class);
 
+    // En az bir bolge "deny-other-blocks" kullaniyor mu? (sicak yol kapisi)
+    // false ise izlenmeyen bloklar WorldGuard'a hic sorulmadan elenir -> sifir ek yuk.
+    private boolean anyDenyOtherBlocks = false;
+
     // Genel ayarlar
     private int blocksPerTick = 200;
     private int cacheSaveIntervalSeconds = 300;
@@ -64,6 +68,7 @@ public final class ConfigManager {
 
         Map<String, RegionConfig> loadedRegions = new HashMap<>();
         Set<Material> loadedMaterials = EnumSet.noneOf(Material.class);
+        boolean loadedAnyDeny = false;
 
         ConfigurationSection regionsSection = config.getConfigurationSection("regions");
         if (regionsSection != null) {
@@ -75,12 +80,14 @@ public final class ConfigManager {
                 RegionConfig regionConfig = parseRegion(regionId, regionSec, loadedMaterials);
                 // WorldGuard bolge ID'leri kucuk harfli tutulur -> hizli karsilastirma.
                 loadedRegions.put(regionId.toLowerCase(Locale.ROOT), regionConfig);
+                loadedAnyDeny |= regionConfig.isDenyOtherBlocks();
             }
         }
 
         this.regions = Map.copyOf(loadedRegions);
         this.interestingMaterials = loadedMaterials.isEmpty()
                 ? EnumSet.noneOf(Material.class) : EnumSet.copyOf(loadedMaterials);
+        this.anyDenyOtherBlocks = loadedAnyDeny;
 
         plugin.getLogger().info("Yuklendi: " + regions.size() + " bolge, "
                 + interestingMaterials.size() + " ilgili materyal turu.");
@@ -91,6 +98,9 @@ public final class ConfigManager {
         Map<Material, RegenBlock> individualBlocks = new HashMap<>();
         Map<Material, GlobalRegenGroup> groupsByTrigger = new HashMap<>();
         Map<String, GlobalRegenGroup> groupsById = new LinkedHashMap<>();
+
+        // Bu bolgede tanimli olmayan bloklarin kirilmasi engellensin mi?
+        boolean denyOtherBlocks = sec.getBoolean("deny-other-blocks", false);
 
         // --- Bireysel bloklar ---
         ConfigurationSection blocksSec = sec.getConfigurationSection("blocks");
@@ -144,7 +154,8 @@ public final class ConfigManager {
             }
         }
 
-        return new RegionConfig(regionId.toLowerCase(Locale.ROOT), individualBlocks, groupsByTrigger, groupsById);
+        return new RegionConfig(regionId.toLowerCase(Locale.ROOT),
+                individualBlocks, groupsByTrigger, groupsById, denyOtherBlocks);
     }
 
     /** Bir reward bolumunu (rewards: {...}) listeye cevirir. */
@@ -260,6 +271,17 @@ public final class ConfigManager {
      */
     public boolean isInteresting(Material material) {
         return interestingMaterials.contains(material);
+    }
+
+    /**
+     * En az bir bolgede {@code deny-other-blocks} acik mi?
+     *
+     * <p>Sicak yol kapisi: false ise, izlenmeyen bloklar WorldGuard sorgusuna
+     * hic girmeden elenir (mevcut "sifir lag" davranisi korunur). Yalnizca
+     * gercekten koruma istenen sunucularda ek sorgu maliyeti olusur.</p>
+     */
+    public boolean hasDenyOtherBlocks() {
+        return anyDenyOtherBlocks;
     }
 
     public int getBlocksPerTick() {

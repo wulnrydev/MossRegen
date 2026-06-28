@@ -60,19 +60,21 @@ public final class BlockBreakListener implements Listener {
         BlockKey key = BlockKey.of(block);
 
         // (1) Konum zaten bir placeholder mi? (orn. bedrock'u tekrar kirma)
-        //     Vanilya droplari iptal edilir; baska is yapilmaz.
+        //     Kirilmayi tamamen iptal et: placeholder bozulmadan kalir.
         if (regenManager.isPending(key)) {
-            cancelDrops(event);
+            event.setCancelled(true);
             return;
         }
 
-        // (2) EN UCUZ KONTROL: Bu materyal hicbir bolgede ilgili degilse cik.
-        //     Sicak yolun buyuk cogunlugu burada sonlanir.
-        if (!config.isInteresting(type)) {
+        // (2) EN UCUZ KONTROL: Bu materyal hicbir bolgede ilgili degil VE hicbir
+        //     bolge "deny-other-blocks" kullanmiyorsa, WorldGuard'a hic sormadan cik.
+        //     Sicak yolun buyuk cogunlugu burada sonlanir (sifir ek yuk).
+        boolean interesting = config.isInteresting(type);
+        if (!interesting && !config.hasDenyOtherBlocks()) {
             return;
         }
 
-        // (3) PAHALI ADIM: WorldGuard bolgelerini sorgula (yalnizca ilgili blokta).
+        // (3) PAHALI ADIM: WorldGuard bolgelerini sorgula.
         Set<String> regionIds = worldGuard.getRegionIdsAt(block.getLocation());
         if (regionIds.isEmpty()) {
             // WorldGuard yoksa veya blok hicbir bolgede degilse eklenti devre disi:
@@ -81,6 +83,8 @@ public final class BlockBreakListener implements Listener {
         }
 
         // (4) Blogun icinde bulundugu bolgelerden config'de tanimli olani bul.
+        //     Tanimli ama islenmeyen bir bloksa ve bolge koruma istiyorsa engelle.
+        boolean inProtectedRegion = false;
         for (String regionId : regionIds) {
             RegionConfig regionConfig = config.getRegion(regionId);
             if (regionConfig == null) {
@@ -90,7 +94,9 @@ public final class BlockBreakListener implements Listener {
             // 4a) Global grup tetikleyicisi mi? (bireysel cooldown yok, toplu yenilenme)
             GlobalRegenGroup group = regionConfig.getGlobalGroupByTrigger(type);
             if (group != null) {
-                cancelDrops(event);
+                // Kirilmayi iptal edip blogu kendimiz degistiririz; aksi halde
+                // sunucu event sonrasi blogu havaya cevirerek placeholder'i ezer.
+                event.setCancelled(true);
                 globalManager.handleBreak(block, group, event.getPlayer());
                 return;
             }
@@ -99,19 +105,22 @@ public final class BlockBreakListener implements Listener {
             RegenBlock regenBlock = regionConfig.getIndividualBlock(type);
             if (regenBlock != null) {
                 Player player = event.getPlayer();
-                cancelDrops(event);
+                event.setCancelled(true);
                 regenManager.handleBreak(block, regenBlock);
                 // Bireysel bloklar icin her kirilmada hediye sansi denenir.
                 rewardManager.tryGiveAll(player, regenBlock.getRewards(), block.getLocation());
                 return;
             }
-        }
-        // Blok ilgili bir bolgede degil veya o bolgede tanimli degil: dokunma.
-    }
 
-    /** Vanilya esya ve tecrube (XP) droplarini iptal eder. */
-    private void cancelDrops(BlockBreakEvent event) {
-        event.setDropItems(false);
-        event.setExpToDrop(0);
+            // 4c) Bu bolge tanimli olmayan bloklarin kirilmasini yasakliyor mu?
+            if (regionConfig.isDenyOtherBlocks()) {
+                inProtectedRegion = true;
+            }
+        }
+
+        // (5) Blok hicbir bolgede islenmedi; ancak korumali bir bolgedeyse engelle.
+        if (inProtectedRegion) {
+            event.setCancelled(true);
+        }
     }
 }

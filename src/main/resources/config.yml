@@ -32,6 +32,22 @@ settings:
 regions:
   maden_bolgesi:
     # ----------------------------------------------------------------
+    #  Bu bolgede config'de TANIMLI OLMAYAN bloklarin kirilmasi engellensin mi?
+    #
+    #  true  -> Yalnizca asagida (blocks / global_regen_groups) tanimli
+    #           materyaller kirilabilir; diger her sey iptal edilir.
+    #  false -> Diger bloklara dokunulmaz (varsayilan davranis).
+    #
+    #  PERFORMANS NOTU: Hicbir bolge bu ayari acmadigi surece izlenmeyen
+    #  bloklar WorldGuard'a hic sorulmaz (sifir ek yuk). Yalnizca bu ayari
+    #  acan bolgeler icin kirilan her blokta 1 WorldGuard sorgusu yapilir.
+    #
+    #  Onemli: WorldGuard'da bu bolgenin "block-break" flag'i ALLOW olmali;
+    #  koruma artik tamamen MossRegen tarafindan yonetilir.
+    # ----------------------------------------------------------------
+    deny-other-blocks: false
+
+    # ----------------------------------------------------------------
     #  Bireysel blok yenilenme (her blogun kendi cooldown'u vardir)
     # ----------------------------------------------------------------
     blocks:
