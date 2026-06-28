@@ -1,0 +1,44 @@
+# ============================================================================
+#  MossRegen - Mesajlar
+#  Tum metinler buradan ozellestirilir. Hex renk destegi vardir:
+#    Solid hex : &#RRGGBB        (orn: &#00D420)
+#    Gradient  : <gradient:#RRGGBB:#RRGGBB>metin</gradient>
+#    Legacy    : &a &b &7 ... ve &l &n &o &k &m formatlamalari
+#  "prefix" kelimesi mesaj basinda otomatik olarak prefix ile degisir.
+# ============================================================================
+
+# Tum mesajlarin basina eklenebilen prefix
+prefix: "&#15FF08&lSkyBlock &8▸ "
+
+general:
+  no-permission: "prefix &7Bu islem icin &#00D420yetkin &7yok."
+  player-only: "prefix &7Bu komut yalnizca oyuncular tarafindan kullanilabilir."
+  unknown-command: "prefix &7Bilinmeyen komut. &#ffd500/mossregen &7yazarak yardim al."
+
+command:
+  help-header: "prefix &7Komutlar:"
+  help-reload: "&8 » &#00D420/mossregen reload &7- Yapilandirmayi yeniden yukler."
+  help-info: "&8 » &#00D420/mossregen info &7- Eklenti bilgilerini gosterir."
+  help-forceregen: "&8 » &#00D420/mossregen forceregen &7- Tum bekleyen bloklari aninda yeniler."
+  reload-success: "&7Basariyla &#00D420MossRegen &7eklentisi &#ffd500yenilendi&7."
+  reload-fail: "&7Yapilandirma yuklenirken bir &chata &7olustu. Konsolu kontrol et."
+  info: "prefix &#00D420MossRegen &7v&#ffd500{version} &7| Yapimci: &#ffd500wulnrydev"
+  forceregen-done: "prefix &7Toplam &#ffd500{count} &7blok aninda &#00D420yenilendi&7."
+
+# Hediye / drop bildirimleri (drop_message config'de tanimli degilse bunlar fallback olabilir)
+reward:
+  default-item: "prefix &7Bir hediye kazandin: &#ffd500{reward}&7!"
+  default-command: "prefix &7Komut hediyesi aldin: &#ffd500{reward}&7!"
+  inventory-full: "prefix &7Envanterin dolu oldugu icin hediye &#ffd500yere dusuruldu&7."
+
+# Global yenilenme bilgi mesajlari (istege bagli kullanim)
+global:
+  timer-started: "prefix &#00D420{group} &7grubu icin &#ffd500{seconds}sn &7geri sayim baslatildi."
+  regen-complete: "prefix &#00D420{group} &7grubundaki &#ffd500{count} &7bitki yenilendi."
+
+# PlaceholderAPI ciktilarinda kullanilan metinler
+placeholder:
+  # Geri sayim aktif degilken %mossregen_<grup>_time_left_formatted% bunu doner
+  ready: "&#00D420Hazir"
+  # Sure formatlamasi icin etiketler (formatted ciktida kullanilir)
+  time-format: "{minutes}dk {seconds}sn"

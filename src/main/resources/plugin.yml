@@ -1,0 +1,24 @@
+name: MossRegen
+version: '${project.version}'
+main: dev.wulnry.mossregen.MossRegen
+api-version: '1.20'
+author: wulnrydev
+description: 1.20+ icin yuksek performansli, asenkron blok yenilenme (regen) eklentisi
+website: https://wulnry.dev
+
+# Bagimliliklar opsiyoneldir; eklenti onlar olmadan da yuklenir ama
+# WorldGuard yoksa bolge kontrolu (config'e gore) devre disi kalir.
+softdepend:
+  - WorldGuard
+  - PlaceholderAPI
+
+commands:
+  mossregen:
+    description: MossRegen ana komutu
+    usage: /mossregen <reload|info|forceregen>
+    aliases: [mr, moss]
+
+permissions:
+  mossregen.admin:
+    description: MossRegen yonetici komutlarina erisim
+    default: op

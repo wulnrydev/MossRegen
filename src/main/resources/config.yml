@@ -1,0 +1,107 @@
+# ============================================================================
+#  MossRegen - Yapilandirma Dosyasi
+#  Yapimci: wulnrydev
+#
+#  Bu eklenti SADECE asagida tanimlanan WorldGuard bolgelerinde calisir.
+#  Performans notu: Event'ler once "hizli" kontrollerden gecer (blok turu
+#  config'de var mi?), ancak ondan sonra (yalnizca gerekirse) WorldGuard
+#  bolge sorgusu yapilir. Boylece ana thread asla gereksiz yere yorulmaz.
+# ============================================================================
+
+settings:
+  # Global yenilenme havuzu islenirken tick basina kac blok yenilensin?
+  # Yuksek deger = daha hizli yenilenme ama daha fazla anlik yuk.
+  # Dusuk deger = sunucu daha rahat ama yenilenme biraz daha uzun surer.
+  blocks-per-tick: 200
+
+  # Bireysel regen verileri ne siklikla diske kaydedilsin (saniye)?
+  # Veriler her zaman RAM (cache) uzerinde tutulur; bu sadece sunucu
+  # cokerse cooldown'larin kaybolmamasi icin periyodik bir yedektir.
+  cache-save-interval-seconds: 300
+
+  # Bildirimleri ActionBar olarak gondermek icin true, sohbet (chat) icin false.
+  use-actionbar-for-rewards: true
+
+  # Debug modu (gelistirme icin). Konsola ekstra log basar.
+  debug: false
+
+# ============================================================================
+#  BOLGELER (REGIONS)
+#  Anahtar = WorldGuard bolge ID'si (region id). Buyuk/kucuk harf duyarsiz.
+# ============================================================================
+regions:
+  maden_bolgesi:
+    # ----------------------------------------------------------------
+    #  Bireysel blok yenilenme (her blogun kendi cooldown'u vardir)
+    # ----------------------------------------------------------------
+    blocks:
+      DIAMOND_ORE:
+        replace_block: BEDROCK        # Kirilinca gecici olarak donusecegi blok
+        regen_time_seconds: 60        # Kac saniye sonra orijinaline doner
+        rewards:
+          nadir_elmas_esyasi:
+            type: ITEM
+            material: DIAMOND
+            amount: 1
+            custom_model_data: 1005
+            name: "&#00D420&lBuyulu Elmas"
+            lore:
+              - "&7Bu elmas cok nadirdir."
+              - "&7Degeri: &#ffd500Paha bicilemez"
+            # Esya direkt envantere mi gelsin (true) yoksa yere mi dussun (false)?
+            give-directly: true
+            # Ozel NBT etiketleri (PersistentDataContainer ile yazilir)
+            nbt:
+              mossregen_rarity: "legendary"
+              mossregen_source: "maden_bolgesi"
+            chance: 5.0               # %5 sans
+            drop_message: "prefix &7Kazi yaparken &#00D420Buyulu Elmas &#ffd500buldun&7!"
+          skycoins_komutu:
+            type: COMMAND
+            commands:
+              - "economy give %player% 10000"
+            chance: 10.0              # %10 sans
+            drop_message: "prefix &7Komut hediyesi olarak &7sana &#ffd50010,000 SkyCoins &7eklendi!"
+
+      EMERALD_ORE:
+        replace_block: BEDROCK
+        regen_time_seconds: 120
+        rewards:
+          zumrut_bonus:
+            type: COMMAND
+            commands:
+              - "economy give %player% 2500"
+            chance: 15.0
+            drop_message: "prefix &7Zumrut bonusu: &#ffd5002,500 SkyCoins&7!"
+
+    # ----------------------------------------------------------------
+    #  Bu bolgede global grup yoksa bu blok bos birakilabilir.
+    # ----------------------------------------------------------------
+    global_regen_groups: {}
+
+  tarim_bolgesi:
+    blocks: {}
+    # ----------------------------------------------------------------
+    #  GLOBAL / TOPLU YENILENME (Tarim / Wheat sistemi)
+    #
+    #  - Bireysel cooldown YOKTUR.
+    #  - Ilk bitki kirildiginda global geri sayim baslar.
+    #  - Sure boyunca kirilan tum bloklar havuzda toplanir.
+    #  - Sure bitince havuzdaki bloklar tick basina bolunerek yenilenir.
+    # ----------------------------------------------------------------
+    global_regen_groups:
+      bugday_tarlasi:
+        trigger_block: WHEAT
+        global_timer_seconds: 180     # 3 dakika
+        replace_block: AIR            # Kirilinca ne olsun (AIR = bos)
+        # Hediye ne zaman verilsin?
+        #   ON_BREAK      -> her bitki kirildiginda (sans denenir)
+        #   ON_GROUP_REGEN-> grup toplu yenilendiginde (kiran herkese)
+        reward-trigger: ON_BREAK
+        rewards:
+          hasat_parasi_komutu:
+            type: COMMAND
+            commands:
+              - "economy give %player% 500"
+            chance: 20.0              # Bir bugday kirildiginda %20 sans
+            drop_message: "prefix &7Hasat odulu: &#ffd500500 SkyCoins&7!"
